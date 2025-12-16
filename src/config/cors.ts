@@ -11,15 +11,12 @@ const vercelPreviewPattern = /^https:\/\/healthjobsph(-[a-z0-9]+)?(-[a-z0-9]+)?\
 
 export const corsConfig: CorsOptions = {
   origin: (origin, callback) => {
-    // In development, allow requests without origin (curl, Postman, etc.)
-    // In production, require origin header for security
+    // Requests without origin are either:
+    // - Same-origin requests (browser, safe)
+    // - Non-browser requests (curl, Postman, health checks, server-to-server)
+    // These are safe to allow - CORS only protects against cross-origin browser requests
     if (!origin) {
-      if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
-        return callback(null, true);
-      }
-      // Production: reject requests without origin
-      console.warn('CORS blocked request with no origin in production');
-      return callback(new Error('Origin header required'));
+      return callback(null, true);
     }
 
     if (allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin)) {
