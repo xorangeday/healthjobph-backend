@@ -79,34 +79,24 @@ describe('EmployerService', () => {
         };
 
         it('should create employer profile', async () => {
-            // Check existing -> null
-            const selectMock = {
-                select: jest.fn().mockReturnThis(),
-                eq: jest.fn().mockReturnThis(),
-                single: jest.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } })
-            };
-
-            const insertMock = {
-                insert: jest.fn().mockReturnThis(),
-                select: jest.fn().mockReturnThis(),
-                single: jest.fn().mockResolvedValue({ data: mockEmployer, error: null })
-            };
-
-            mockSupabaseClient.from.mockImplementation((table) => {
-                if (table === 'employers') {
-                    // This is tricky because create calls getByUserId first.
-                    // Simplest is to assume first call is select, second is insert.
-                    // But getByUserId is static and calls from() locally.
-                    // We can chain mockReturnValueOnce.
+            // Use call count pattern to properly sequence mock responses
+            let callCount = 0;
+            mockSupabaseClient.from.mockImplementation(() => {
+                callCount++;
+                if (callCount === 1) {
+                    // First call: getByUserId check (returns null - no existing profile)
                     return {
                         select: jest.fn().mockReturnThis(),
                         eq: jest.fn().mockReturnThis(),
-                        single: jest.fn()
-                            .mockResolvedValueOnce({ data: null, error: { code: 'PGRST116' } }) // getByUserId
-                            .mockResolvedValueOnce({ data: mockEmployer, error: null }), // insert return
-                        insert: jest.fn().mockReturnThis()
+                        single: jest.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } })
                     };
                 }
+                // Second call: insert new profile
+                return {
+                    insert: jest.fn().mockReturnThis(),
+                    select: jest.fn().mockReturnThis(),
+                    single: jest.fn().mockResolvedValue({ data: mockEmployer, error: null })
+                };
             });
 
             const result = await EmployerService.create(mockUserId, createInput, mockAccessToken);
