@@ -7,7 +7,7 @@ const allowedOrigins = [
 
 // Vercel preview pattern - restrict to your project name
 // Update 'healthjobsph' to match your actual Vercel project name
-const vercelPreviewPattern = /^https:\/\/healthjobsph(-[a-z0-9]+)?(-[a-z0-9]+)?\.vercel\.app$/;
+const vercelPreviewPattern = /^https:\/\/(healthjobsph|healthjobs-ph-next).*\.vercel\.app$/;
 
 export const corsConfig: CorsOptions = {
   origin: (origin, callback) => {
