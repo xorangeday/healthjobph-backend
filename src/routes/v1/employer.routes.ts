@@ -13,18 +13,18 @@ const router = Router();
 router.use(authenticateJWT);
 
 // Get current user's employer profile
-router.get('/profile', EmployerController.getProfile);
+router.get('/', EmployerController.getProfile);
 
 // Get employer profile by ID
-router.get('/profile/:employerId', EmployerController.getProfileById);
+router.get('/:employerId', EmployerController.getProfileById);
 
 // Create employer profile
-router.post('/profile', mutationRateLimiter, EmployerController.createProfile);
+router.post('/', mutationRateLimiter, EmployerController.createProfile);
 
 // Update employer profile
-router.put('/profile', mutationRateLimiter, EmployerController.updateProfile);
+router.put('/', mutationRateLimiter, EmployerController.updateProfile);
 
 // Delete employer profile
-router.delete('/profile', mutationRateLimiter, EmployerController.deleteProfile);
+router.delete('/', mutationRateLimiter, EmployerController.deleteProfile);
 
 export default router;

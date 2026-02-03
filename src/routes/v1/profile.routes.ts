@@ -34,4 +34,7 @@ router.delete('/', mutationRateLimiter, ProfileController.deleteProfile);
 // Get profile by user ID (for viewing other profiles)
 router.get('/:userId', ProfileController.getProfileByUserId);
 
+// Get full job seeker profile by Job Seeker ID (public view for employers)
+router.get('/job-seeker/:jobSeekerId', ProfileController.getJobSeekerProfile);
+
 export default router;

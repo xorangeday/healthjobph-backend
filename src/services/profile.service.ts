@@ -195,4 +195,43 @@ export class ProfileService {
       throw new DatabaseError(mapped.message);
     }
   }
+
+  /**
+   * Get full profile by Job Seeker ID (Public View)
+   * Fetches profile + all related data (skills, education, etc.)
+   */
+  static async getFullProfileByJobSeekerId(
+    jobSeekerId: string,
+    accessToken: string
+  ): Promise<any> {
+    const supabase = createUserClient(accessToken);
+
+    // Fetch profile and related data
+    const { data, error } = await supabase
+      .from('job_seekers')
+      .select('*,skills:job_seeker_skills(*),education:job_seeker_education(*),certifications:job_seeker_certifications(*),work_history:job_seeker_work_history(*,responsibilities:work_history_responsibilities(*))')
+      .eq('id', jobSeekerId)
+      .single();
+
+    if (error) {
+      if (isNotFoundError(error)) {
+        return null;
+      }
+      console.error('Error fetching full profile:', error);
+      return null;
+    }
+
+    // Also fetch resume if available
+    const { data: documents } = await supabase
+      .from('profile_documents')
+      .select('*')
+      .eq('job_seeker_id', jobSeekerId)
+      .eq('document_type', 'resume')
+      .maybeSingle();
+
+    return {
+      ...data,
+      resume_document: documents || null
+    };
+  }
 }

@@ -56,3 +56,17 @@ export class DatabaseError extends AppError {
     this.name = 'DatabaseError';
   }
 }
+
+export class BadRequestError extends AppError {
+  constructor(message = 'Bad Request', public details?: unknown) {
+    super(message, 400, 'BAD_REQUEST');
+    this.name = 'BadRequestError';
+  }
+}
+
+export class InternalServerError extends AppError {
+  constructor(message = 'Internal Server Error') {
+    super(message, 500, 'INTERNAL_SERVER_ERROR');
+    this.name = 'InternalServerError';
+  }
+}

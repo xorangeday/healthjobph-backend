@@ -100,7 +100,7 @@ export class JobController {
         throw new UnauthorizedError('Authentication required');
       }
 
-      const jobs = await JobService.getByEmployerId(req.user.id, req.accessToken);
+      const jobs = await JobService.getByUserId(req.user.id, req.accessToken);
 
       res.status(200).json({
         success: true,
@@ -125,7 +125,7 @@ export class JobController {
         throw new UnauthorizedError('Authentication required');
       }
 
-      const count = await JobService.getCountByEmployerId(req.user.id, req.accessToken);
+      const count = await JobService.getCountByUserId(req.user.id, req.accessToken);
 
       res.status(200).json({
         success: true,

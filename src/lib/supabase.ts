@@ -36,3 +36,14 @@ export function createServiceClient(): SupabaseClient {
     },
   });
 }
+
+/**
+ * Public Supabase client (Anon key)
+ * Use for public operations like login/register
+ */
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+});

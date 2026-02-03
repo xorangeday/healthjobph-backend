@@ -177,4 +177,39 @@ export class ProfileController {
       next(error);
     }
   }
+  /**
+   * GET /api/v1/profile/job-seeker/:jobSeekerId
+   * Get full profile by Job Seeker ID (public view for employers)
+   */
+  static async getJobSeekerProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      if (!req.accessToken) {
+        throw new UnauthorizedError('Authentication required');
+      }
+
+      const { jobSeekerId } = req.params;
+
+      const profile = await ProfileService.getFullProfileByJobSeekerId(jobSeekerId, req.accessToken);
+
+      if (!profile) {
+        res.status(404).json({
+          success: false,
+          error: 'Not Found',
+          message: 'Profile not found',
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        data: profile,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

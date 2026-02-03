@@ -311,13 +311,13 @@ export class ApplicationService {
         return {
           ...app,
           job_title: app.jobs?.title,
-          job_seeker_name: app.job_seekers
-            ? `${app.job_seekers.first_name} ${app.job_seekers.last_name}`
-            : undefined,
+          job_seeker_first_name: app.job_seekers?.first_name,
+          job_seeker_last_name: app.job_seekers?.last_name,
           job_seeker_email: email,
           job_seeker_phone: app.job_seekers?.phone,
           job_seeker_location: app.job_seekers?.location,
           job_seeker_profession: app.job_seekers?.profession,
+          job_seeker_experience: app.job_seekers?.experience,
         };
       })
     );

@@ -171,32 +171,61 @@ export class JobService {
   }
 
   /**
-   * Get jobs for a specific employer
+   * Get employer profile ID for a user
+   */
+  private static async getEmployerProfileId(
+    userId: string,
+    accessToken: string
+  ): Promise<string> {
+    const supabase = createUserClient(accessToken);
+
+    const { data, error } = await supabase
+      .from('employers')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+
+    if (error || !data) {
+      throw new NotFoundError('Employer profile not found');
+    }
+
+    return data.id;
+  }
+
+  /**
+   * Get jobs for a specific user (employer)
    * Uses authenticated user's token
    */
-  static async getByEmployerId(
-    employerId: string,
+  static async getByUserId(
+    userId: string,
     accessToken: string
   ): Promise<Job[]> {
     const supabase = createUserClient(accessToken);
 
-    const { data, error } = await supabase
-      .from('jobs')
-      .select(`
+    try {
+      const employerId = await this.getEmployerProfileId(userId, accessToken);
+
+      const { data, error } = await supabase
+        .from('jobs')
+        .select(`
         *,
         requirements:job_requirements(*),
         benefits:job_benefits(*),
         tags:job_tags(*)
       `)
-      .eq('employer_id', employerId)
-      .order('posted_date', { ascending: false });
+        .eq('employer_id', employerId)
+        .order('posted_date', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching employer jobs:', error);
+      if (error) {
+        console.error('Error fetching employer jobs:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error getting employer profile:', error);
       return [];
     }
-
-    return data || [];
   }
 
   /**
@@ -204,12 +233,14 @@ export class JobService {
    * Uses authenticated user's token for RLS
    */
   static async create(
-    employerId: string,
+    userId: string,
     jobData: CreateJobInput,
     accessToken: string
   ): Promise<Job> {
     const supabase = createUserClient(accessToken);
     const now = new Date().toISOString();
+
+    const employerId = await this.getEmployerProfileId(userId, accessToken);
 
     // Extract related data
     const { requirements, benefits, tags, ...jobFields } = jobData;
@@ -284,11 +315,12 @@ export class JobService {
    */
   static async update(
     jobId: string,
-    employerId: string,
+    userId: string,
     jobData: UpdateJobInput,
     accessToken: string
   ): Promise<Job> {
     const supabase = createUserClient(accessToken);
+    const employerId = await this.getEmployerProfileId(userId, accessToken);
 
     // Verify ownership
     const existing = await this.getById(jobId);
@@ -361,10 +393,11 @@ export class JobService {
    */
   static async delete(
     jobId: string,
-    employerId: string,
+    userId: string,
     accessToken: string
   ): Promise<void> {
     const supabase = createUserClient(accessToken);
+    const employerId = await this.getEmployerProfileId(userId, accessToken);
 
     // Verify ownership
     const existing = await this.getById(jobId);
@@ -409,24 +442,31 @@ export class JobService {
   }
 
   /**
-   * Get job count for an employer
+   * Get job count for a user (employer)
    */
-  static async getCountByEmployerId(
-    employerId: string,
+  static async getCountByUserId(
+    userId: string,
     accessToken: string
   ): Promise<number> {
     const supabase = createUserClient(accessToken);
 
-    const { count, error } = await supabase
-      .from('jobs')
-      .select('*', { count: 'exact', head: true })
-      .eq('employer_id', employerId);
+    try {
+      const employerId = await this.getEmployerProfileId(userId, accessToken);
 
-    if (error) {
-      console.error('Error counting jobs:', error);
+      const { count, error } = await supabase
+        .from('jobs')
+        .select('*', { count: 'exact', head: true })
+        .eq('employer_id', employerId);
+
+      if (error) {
+        console.error('Error counting jobs:', error);
+        return 0;
+      }
+
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting employer profile for count:', error);
       return 0;
     }
-
-    return count || 0;
   }
 }
