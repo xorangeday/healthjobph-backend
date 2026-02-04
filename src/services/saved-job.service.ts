@@ -27,6 +27,8 @@ export interface SavedJobWithDetails extends SavedJob {
     facility_type: string;
     is_urgent?: boolean;
     experience: string;
+    requirements?: { requirement: string }[];
+    benefits?: { benefit: string }[];
     employers?: {
       facility_name: string;
     };
@@ -101,6 +103,8 @@ export class SavedJobService {
           id, title, location, employment_type, category,
           salary_display, salary_min, salary_max, posted_date,
           description, facility_type, is_urgent, experience,
+          requirements:job_requirements(requirement),
+          benefits:job_benefits(benefit),
           employers:employer_id(facility_name)
         )
       `)
