@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../lib/supabase';
 import { ProfileService } from '../services/profile.service';
 import { EmployerService } from '../services/employer.service';
-import { registerJobseekerSchema, registerEmployerSchema } from '../schemas/auth.schema';
+import { registerJobseekerSchema, registerEmployerSchema, loginSchema } from '../schemas/auth.schema';
 import { BadRequestError, InternalServerError, ConflictError, UnauthorizedError } from '../lib/errors';
 import { ZodError } from 'zod';
 import { mapSupabaseError } from '../lib/supabase-errors';
@@ -267,6 +267,55 @@ export class AuthController {
             });
         } catch (error) {
             next(error);
+        }
+    }
+
+    /**
+     * Login user
+     * POST /api/v1/auth/login
+     */
+    static async login(req: Request, res: Response, next: NextFunction) {
+        try {
+            const validatedData = loginSchema.parse(req.body);
+            const { email, password } = validatedData;
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (error) {
+                if (error.message.includes('Invalid login credentials')) {
+                    throw new UnauthorizedError('Invalid email or password');
+                }
+                throw new BadRequestError(error.message);
+            }
+
+            if (!data.user || !data.session) {
+                throw new InternalServerError('Login failed to retrieve session');
+            }
+
+            // Return user and session
+            res.status(200).json({
+                success: true,
+                message: 'Login successful',
+                data: {
+                    user: {
+                        id: data.user.id,
+                        email: data.user.email,
+                        user_type: data.user.user_metadata?.user_type,
+                        name: data.user.user_metadata?.name
+                    },
+                    session: data.session
+                }
+            });
+
+        } catch (error) {
+            if (error instanceof ZodError) {
+                next(new BadRequestError('Validation failed', error.errors));
+            } else {
+                next(error);
+            }
         }
     }
 }

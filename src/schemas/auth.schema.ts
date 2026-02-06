@@ -70,3 +70,11 @@ export const registerEmployerSchema = baseRegisterSchema.extend({
 
 export type RegisterJobseekerInput = z.infer<typeof registerJobseekerSchema>;
 export type RegisterEmployerInput = z.infer<typeof registerEmployerSchema>;
+
+// Login schema
+export const loginSchema = z.object({
+    email: z.string().email('Please enter a valid email address'),
+    password: z.string().min(1, 'Password is required'),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;
